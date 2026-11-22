@@ -96,3 +96,9 @@ if (builder) {
     builder.querySelector('#book-style').href = 'booking.html?style='+encodeURIComponent(`${label(style.colour)} ${label(style.shape).toLowerCase()} nails with ${label(style.finish).toLowerCase()} finish`);
   }));
 }
+// The chooser has its own booking action; keep the fixed bar out of its way.
+if (builder && 'IntersectionObserver' in window) {
+  new IntersectionObserver(entries => {
+    document.body.classList.toggle('builder-in-view', entries[0].isIntersecting);
+  }, {rootMargin:'-80px 0px -20px 0px',threshold:0}).observe(builder);
+}
