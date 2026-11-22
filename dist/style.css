@@ -282,3 +282,26 @@ h1, h2, h3, .brand { font-family: var(--heading-font); }
  .builder-controls>.note{font-size:10px;line-height:1.4;margin:8px 0 0}
  body.builder-in-view .mobile-book{visibility:hidden;pointer-events:none}
 }
+/* Always-rendered visitor information, including on mobile Safari. */
+.faq{align-items:start;height:auto;min-height:0}
+.faq>div{min-width:0}
+.faq-item{padding:22px 0;border-bottom:1px solid var(--line)}
+.faq-item:first-child{border-top:1px solid var(--line)}
+.faq-item h3{font:500 16px/1.5 'DM Sans',Arial,sans-serif;letter-spacing:0}
+.faq .faq-item p{display:block;font-size:14px;line-height:1.7;padding-top:10px;margin:0;color:var(--muted)}
+.ribbon{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;padding:0 5%;background:var(--paper);letter-spacing:1.6px}
+.ribbon>span{display:flex;align-items:center;justify-content:center;text-align:center;min-height:68px;padding:16px 12px;font-size:10px;color:var(--ink);border-right:1px solid var(--line)}
+.ribbon>span:last-child{border-right:0}
+@media(max-width:650px){
+ .ribbon{grid-template-columns:repeat(2,minmax(0,1fr));padding:0 5%}
+ .ribbon>span{min-height:48px;padding:12px 5px;font-size:9px;letter-spacing:1.2px}
+ .ribbon>span:nth-child(2){border-right:0}
+ .ribbon>span:nth-child(-n+2){border-bottom:1px solid var(--line)}
+ .faq{display:block;padding:44px 0}
+ .faq>div:first-child{margin-bottom:24px}
+ .faq h2 br{display:none}
+ .faq h2{font-size:38px;line-height:1.1}
+ .faq-item{padding:18px 0}
+ .faq-item h3{font-size:15px}
+ .faq .faq-item p{font-size:13px}
+}
