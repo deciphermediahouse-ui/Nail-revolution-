@@ -6,7 +6,17 @@ if (heroVideo) {
   const desktop = window.matchMedia('(min-width: 901px)');
   const desktopVideoSource = 'assets/hero-desktop-luxury.mp4';
   const mobileVideoSource = 'assets/hero-mobile-luxury.mp4';
-  heroVideo.src = desktop.matches ? desktopVideoSource : mobileVideoSource;
+  function loadHeroSource() {
+    heroVideo.muted = true;
+    heroVideo.defaultMuted = true;
+    heroVideo.setAttribute('playsinline', '');
+    heroVideo.setAttribute('webkit-playsinline', '');
+    heroVideo.src = (desktop.matches ? desktopVideoSource : mobileVideoSource) + '#t=0.001';
+    heroVideo.load();
+    const playback = heroVideo.play();
+    if (playback) playback.catch(scheduleHeroSync);
+  }
+  loadHeroSource();
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const hero = heroVideo.closest('.hero');
   const runway = hero.closest('.hero-runway');
@@ -21,7 +31,7 @@ if (heroVideo) {
     const progress = reducedMotion.matches ? 0 : Math.min(1, Math.max(0, traveled / Math.max(1, distance)));
     const video = heroVideo;
     if (!Number.isFinite(video.duration) || video.seeking) return;
-    const time = progress * Math.max(0, video.duration - 0.04);
+    const time = Math.max(0.001, progress * Math.max(0, video.duration - 0.04));
 
     if (Math.abs(video.currentTime - time) >= 0.02) {
       video.currentTime = time;
@@ -34,13 +44,22 @@ if (heroVideo) {
     if (!frame) frame = requestAnimationFrame(syncHeroVideo);
   }
 
+  heroVideo.addEventListener('playing', () => {
+    heroVideo.pause();
+    scheduleHeroSync();
+  });
+  window.addEventListener('touchstart', () => {
+    if (heroVideo.readyState < 2) {
+      heroVideo.play().catch(scheduleHeroSync);
+    }
+  }, { passive: true });
   for (const video of [heroVideo, handVideo]) {
-    for (const event of ['loadeddata', 'seeked']) video.addEventListener(event, scheduleHeroSync);
+    for (const event of ['loadedmetadata', 'loadeddata', 'canplay', 'seeked']) video.addEventListener(event, scheduleHeroSync);
   }
   window.addEventListener('scroll', scheduleHeroSync, { passive: true });
   desktop.addEventListener('change', () => {
     hero.classList.remove('show-hand');
-    heroVideo.src = desktop.matches ? desktopVideoSource : mobileVideoSource;
+    loadHeroSource();
     prepareLocalVideo(heroVideo);
     scheduleHeroSync();
   });
