@@ -74,12 +74,3 @@ document.addEventListener('keydown', event => {
   }
 });
 
-const fontPreview = new URLSearchParams(location.search).get('font');
-const headingFonts = {
-  editorial: 'Baskervville',
-  modern: 'DM Serif Text',
-  classic: 'Cormorant Garamond'
-};
-if (headingFonts[fontPreview]) {
-  document.documentElement.style.setProperty('--heading-font', "'" + headingFonts[fontPreview] + "', Georgia, serif");
-}
