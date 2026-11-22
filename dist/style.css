@@ -169,3 +169,13 @@
   background: #e8e6e9;
 }
 .founder-photo img { object-position: center; }
+
+@media (max-width: 650px) {
+  .hero:has(#hero-video) .hero-copy { padding-top: 0; }
+  .hero:has(#hero-video) h1 { font-size: 39px; margin: 14px 0; }
+  .hero:has(#hero-video) .hero-copy > p,
+  .hero:has(#hero-video) .hero-foot { display: none; }
+  .hero:has(#hero-video) .actions { gap: 18px; }
+  .hero:has(#hero-video) .btn { padding: 12px 16px; }
+  .hero #hero-video { object-position: center; }
+}

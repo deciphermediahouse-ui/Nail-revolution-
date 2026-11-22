@@ -4,9 +4,9 @@ const heroVideo = document.querySelector('#hero-video');
 if (heroVideo) {
   const handVideo = document.querySelector('#hero-hand');
   const desktop = window.matchMedia('(min-width: 901px)');
-  const desktopSource = desktop.matches;
   const desktopVideoSource = 'assets/hero-desktop-luxury.mp4';
-  if (desktopSource) heroVideo.src = desktopVideoSource;
+  const mobileVideoSource = 'assets/hero-mobile-luxury.mp4';
+  heroVideo.src = desktop.matches ? desktopVideoSource : mobileVideoSource;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const hero = heroVideo.closest('.hero');
   const runway = hero.closest('.hero-runway');
@@ -19,24 +19,15 @@ if (heroVideo) {
     const pinTop = parseFloat(getComputedStyle(hero).top) || 0;
     const traveled = pinTop - runway.getBoundingClientRect().top;
     const progress = reducedMotion.matches ? 0 : Math.min(1, Math.max(0, traveled / Math.max(1, distance)));
-    const cut = 0.58;
-    const showingHand = !desktop.matches && progress >= cut;
-    const video = showingHand ? handVideo : heroVideo;
+    const video = heroVideo;
     if (!Number.isFinite(video.duration) || video.seeking) return;
-
-    const openingEnd = Math.min(4.9, heroVideo.duration);
-    const handEnd = Math.max(0, handVideo.duration - 0.04);
-    const time = desktop.matches
-      ? progress * Math.max(0, heroVideo.duration - 0.04)
-      : showingHand
-      ? ((progress - cut) / (1 - cut)) * handEnd
-      : (progress / cut) * openingEnd;
+    const time = progress * Math.max(0, video.duration - 0.04);
 
     if (Math.abs(video.currentTime - time) >= 0.02) {
       video.currentTime = time;
       return;
     }
-    if (video.readyState >= 2) hero.classList.toggle('show-hand', showingHand);
+
   }
 
   function scheduleHeroSync() {
@@ -49,7 +40,7 @@ if (heroVideo) {
   window.addEventListener('scroll', scheduleHeroSync, { passive: true });
   desktop.addEventListener('change', () => {
     hero.classList.remove('show-hand');
-    heroVideo.src = desktop.matches ? desktopVideoSource : 'assets/hero-original-campaign.mp4';
+    heroVideo.src = desktop.matches ? desktopVideoSource : mobileVideoSource;
     prepareLocalVideo(heroVideo);
     scheduleHeroSync();
   });
