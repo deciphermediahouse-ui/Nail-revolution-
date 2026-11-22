@@ -9,6 +9,8 @@ function copyButton(text) {
   return button;
 }
 if (booking) {
+  const chosenStyle = new URLSearchParams(location.search).get('style');
+  if (chosenStyle) booking.elements.remarks.value = 'I’m interested in: ' + chosenStyle.slice(0,250);
   const now = new Date();
   booking.elements.date.min = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
   booking.addEventListener('submit', event => {

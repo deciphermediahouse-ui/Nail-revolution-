@@ -5,17 +5,21 @@ const heroVideo = document.querySelector('#hero-video');
 if (heroVideo) {
   const desktop = matchMedia('(min-width: 901px)');
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  heroVideo.poster = desktop.matches ? 'assets/hero-desktop-poster.webp' : 'assets/hero-mobile-poster.webp';
   const hero = heroVideo.closest('.hero');
   const runway = hero.closest('.hero-runway');
   let frame = 0;
-  let localUrl;
+  let sourceLoaded = "";
+  let geometry = {start:0, distance:1};
+  function measureHero() {
+    geometry.start = runway.getBoundingClientRect().top + scrollY - (parseFloat(getComputedStyle(hero).top) || 0);
+    geometry.distance = Math.max(1, runway.offsetHeight - hero.offsetHeight);
+  }
 
   function syncVideo() {
     frame = 0;
     if (reducedMotion.matches || !Number.isFinite(heroVideo.duration) || heroVideo.seeking) return;
-    const distance = runway.offsetHeight - hero.offsetHeight;
-    const top = parseFloat(getComputedStyle(hero).top) || 0;
-    const progress = Math.min(1, Math.max(0, (top - runway.getBoundingClientRect().top) / Math.max(1, distance)));
+    const progress = Math.min(1, Math.max(0, (scrollY - geometry.start) / geometry.distance));
     const time = Math.max(0.01, progress * Math.max(0, heroVideo.duration - 0.06));
     if (Math.abs(heroVideo.currentTime - time) > 0.06) heroVideo.currentTime = time;
   }
@@ -29,24 +33,18 @@ if (heroVideo) {
     heroVideo.play().catch(() => {});
   }
 
-  async function loadVideo() {
-    const source = desktop.matches ? 'assets/hero-desktop-luxury.mp4' : 'assets/hero-mobile-optimized.mp4';
+  function loadVideo() {
+    measureHero();
     heroVideo.poster = desktop.matches ? 'assets/hero-desktop-poster.webp' : 'assets/hero-mobile-poster.webp';
+    if (reducedMotion.matches || navigator.connection?.saveData) return;
+    const source = desktop.matches ? 'assets/hero-desktop-fast.mp4' : 'assets/hero-mobile-optimized.mp4';
+    if (sourceLoaded === source) return;
+    sourceLoaded = source;
     heroVideo.muted = true;
     heroVideo.defaultMuted = true;
+    heroVideo.preload = 'auto';
     heroVideo.src = source + '#t=0.01';
     heroVideo.load();
-    if (['127.0.0.1', 'localhost'].includes(location.hostname)) {
-      try {
-        const response = await fetch(source);
-        if (!response.ok) return;
-        const blob = await response.blob();
-        if (heroVideo.getAttribute('src') !== source + '#t=0.01') return;
-        if (localUrl) URL.revokeObjectURL(localUrl);
-        localUrl = URL.createObjectURL(blob);
-        heroVideo.src = localUrl;
-      } catch {}
-    }
     primeVideo();
   }
 
@@ -58,12 +56,19 @@ if (heroVideo) {
     heroVideo.addEventListener(event, scheduleSync);
   }
   window.addEventListener('scroll', scheduleSync, { passive: true });
-  window.addEventListener('resize', scheduleSync);
+  window.addEventListener('resize', () => { measureHero(); scheduleSync(); });
+  document.fonts.ready.then(() => { measureHero(); scheduleSync(); });
   window.addEventListener('touchstart', () => {
     if (heroVideo.readyState < 2) primeVideo();
   }, { passive: true });
   desktop.addEventListener('change', loadVideo);
-  loadVideo();
+  measureHero();
+  const startVideo = () => {
+    if ('requestIdleCallback' in window) requestIdleCallback(loadVideo, {timeout: 800});
+    else setTimeout(loadVideo, 100);
+  };
+  if (document.readyState === 'complete') startVideo();
+  else window.addEventListener('load', startVideo, {once:true});
 }
 
 document.addEventListener('keydown', event => {
@@ -74,3 +79,20 @@ document.addEventListener('keydown', event => {
   }
 });
 
+
+const builder = document.querySelector('.nail-builder');
+if (builder) {
+  const style = {shape:'almond', colour:'burgundy', finish:'gloss'};
+  const colours = {burgundy:'#7a233b',rose:'#ca8795',nude:'#bd927c',pearl:'#eee5df'};
+  const label = value => value === 'square' ? 'Soft square' : value === 'french' ? 'French tip' : value[0].toUpperCase()+value.slice(1);
+  builder.querySelectorAll('[data-choice] button').forEach(button => button.addEventListener('click', () => {
+    const group = button.closest('[data-choice]'); style[group.dataset.choice] = button.dataset.value;
+    group.querySelectorAll('button').forEach(item => item.setAttribute('aria-pressed',String(item === button)));
+    const preview = builder.querySelector('.builder-preview');
+    preview.style.setProperty('--nail-colour', colours[style.colour]);
+    preview.dataset.shape = style.shape; preview.dataset.finish = style.finish;
+    builder.querySelector('#style-name').textContent = [style.colour,style.shape,style.finish].map(label).join(' · ');
+    builder.querySelector('#style-description').textContent = `${label(style.colour)} ${label(style.shape).toLowerCase()} nails with ${label(style.finish).toLowerCase()} detailing. A starting point for your own signature set.`;
+    builder.querySelector('#book-style').href = 'booking.html?style='+encodeURIComponent(`${label(style.colour)} ${label(style.shape).toLowerCase()} nails with ${label(style.finish).toLowerCase()} finish`);
+  }));
+}
