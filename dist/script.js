@@ -7,7 +7,6 @@ if (heroVideo) {
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const hero = heroVideo.closest('.hero');
   const runway = hero.closest('.hero-runway');
-  const replay = document.querySelector('#hero-replay');
   let frame = 0;
   let localUrl;
 
@@ -64,10 +63,6 @@ if (heroVideo) {
     if (heroVideo.readyState < 2) primeVideo();
   }, { passive: true });
   desktop.addEventListener('change', loadVideo);
-  replay?.addEventListener('click', () => {
-    hero.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    primeVideo();
-  });
   loadVideo();
 }
 
@@ -78,3 +73,13 @@ document.addEventListener('keydown', event => {
     menu.focus();
   }
 });
+
+const fontPreview = new URLSearchParams(location.search).get('font');
+const headingFonts = {
+  editorial: 'Baskervville',
+  modern: 'DM Serif Text',
+  classic: 'Cormorant Garamond'
+};
+if (headingFonts[fontPreview]) {
+  document.documentElement.style.setProperty('--heading-font', "'" + headingFonts[fontPreview] + "', Georgia, serif");
+}
